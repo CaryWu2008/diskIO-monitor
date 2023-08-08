@@ -2,11 +2,11 @@
 <html>
 <head>
     <title>Disk Usage Reports</title>
-        <style>
+    <style>
         form {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
         }
 
         form > * {
@@ -19,11 +19,11 @@
         }
 
         form > div > * {
-            margin-right: 10px;
+            margin: 10px 5px;
         }
 
-	form > div > label {
-            margin-left: 20px;
+        form > div > label {
+            margin-right: 5px;
         }
 
         button {
@@ -34,6 +34,11 @@
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+
+        button.selected {
+            background-color: darkgreen; /* Change the background color for selected button */
+            color: white; /* Change the text color for selected button */
         }
 
         button:hover {
@@ -54,44 +59,63 @@
             box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
         }
 
+        h1 {
+            color: blue;
+            text-align: center;
+        }
+
         h2 {
             font-size: 20px;
             line-height: 1.5;
+            text-align: center;
         }
 
         h2 span {
             display: inline-block;
         }
+
+        img {
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
-    <h1 style="color: blue; text-align: center;">LiSuan Server Disk I/O Usage Reports</h1>
-    <form method="post" id="form">
-        <input type="hidden" id="category" name="category" value="{{ category }}">
-	<div style="text-align: center">
-          <p>第一步：选择需要查看的磁盘</p>
-          <button type="button" onclick="submitForm('dump')">dump</button>
-          <button type="button" onclick="submitForm('project')">project</button>
-          <label for="date">第二步：选择日期:</label>
-          <input type="date" id="date" name="date" value="{{ date or today }}" onchange="submitForm()">
-	  <button type="submit" name="action" value="5days" >查看过去 5 天数据</button>
+<h1>LiSuan Server Disk I/O Usage Reports</h1>
+<form method="post" id="form">
+    <input type="hidden" id="category" name="category" value="{{ category }}">
+    <div>
+        <p>第一步：选择需要查看的磁盘</p>
+        <div>
+            <!-- Add the 'selected' class dynamically to the active disk button -->
+            <button type="button" class="disk-button {% if category == 'dump' %}selected{% endif %}" data-category="dump" onclick="submitForm('dump')">dump</button>
+            <button type="button" class="disk-button {% if category == 'project' %}selected{% endif %}" data-category="project" onclick="submitForm('project')">project</button>
         </div>
-    </form>
-
-    <script>
-        function submitForm(category) {
-          if (category) {
+        <label for="date">第二步：选择日期:</label>
+        <input type="date" id="date" name="date" value="{{ date or today }}" onchange="submitForm()">
+        <button type="submit" name="action" value="5days">查看过去 5 天数据</button>
+    </div>
+</form>
+<script>
+    function submitForm(category) {
+        if (category) {
             document.getElementById('category').value = category;
-          }
-          document.getElementById('form').submit();
+            // Remove the 'selected' class from all buttons
+            const buttons = document.querySelectorAll('.disk-button');
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+            });
+            // Add the 'selected' class to the clicked button
+            const clickedButton = document.querySelector('.disk-button[data-category="' + category + '"]');
+            clickedButton.classList.add('selected');
         }
+        document.getElementById('form').submit();
+    }
+</script>
 
-    </script>
-
-    {% if img %}
-    <h2><span>目前选择的磁盘:</span>&nbsp;&nbsp;&nbsp;<span style="color: red">{{ category }}</span></h2>
-    <img src="data:image/png;base64,{{ img }}" alt="Disk Usage Plot">
-    {% endif %}
+{% if img %}
+<img src="data:image/png;base64,{{ img }}" alt="Disk Usage Plot">
+{% endif %}
 </body>
 </html>
 
